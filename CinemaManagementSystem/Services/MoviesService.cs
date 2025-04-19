@@ -53,6 +53,13 @@ namespace CinemaManagementSystem.Services
             return MovieDto;
         }
 
+        public async Task<Movie> FindMovieDetails(int id)
+        {
+            Movie Movie = await _context.Movies.Include(m => m.Screenings).Where(m => m.MovieId == id).FirstOrDefaultAsync();
+
+            return Movie;
+        }
+
         public async Task AddMovie(Movie movie)
         {
             _context.Movies.Add(movie);

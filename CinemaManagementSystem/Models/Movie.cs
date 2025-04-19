@@ -13,7 +13,7 @@ namespace CinemaManagementSystem.Models
 
         public string Language { get; set; }
 
-        public DateTime ReleaseDate { get; set; }
+        public DateOnly ReleaseDate { get; set; }
 
         public int Duration { get; set; }
 

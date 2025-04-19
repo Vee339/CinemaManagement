@@ -8,6 +8,8 @@ namespace CinemaManagementSystem.Interfaces
 
         Task<MovieDto> FindMovie(int id);
 
+        Task<Movie> FindMovieDetails(int id);
+
         Task AddMovie(Movie movie);
 
         Task<string> PutMovie(int id, Movie movie);

@@ -1,13 +1,22 @@
 ﻿@model CinemaManagementSystem.Models.ViewsModels.MovieDetails;
 
+<header>
+    <h1>The information of the movie @Model.Movie.MovieName</h1>
+    <div class="buttons">
+        <a href="/MoviesPage/Edit/@Model.Movie.MovieId">Edit</a>
+        <a href="/MoviesPage/ConfirmDelete/@Model.Movie.MovieId">Delete</a>
+    </div>
+</header>
 <div class="details">
-    <h1>@Model.Movie.MovieId. @Model.Movie.MovieName</h1>
+    <h2>@Model.Movie.MovieId. @Model.Movie.MovieName</h2>
     <p>Language: @Model.Movie.Language</p>
     <p>Number of Screenngs: @Model.Movie.TotalScreenings</p>
     @foreach (var Screening in Model.Screenings){
-        <h2>@Screening.ShowDate</h2>
-        <p>@Screening.StartTime - @Screening.EndTime</p>
-        <a href="/ScreeningsPage/Details/@Screening.ScreeningId">See Details</a>
-        <a href="/ScreeningsPage/ConfirmDelete/@Screening.ScreeningId">Delete Screenings</a>
+        <div class="screening">
+            <h3>@Screening.ShowDate</h3>
+            <p>@Screening.StartTime - @Screening.EndTime</p>
+            <a href="/ScreeningsPage/Details/@Screening.ScreeningId">See Details</a>
+            <a href="/ScreeningsPage/ConfirmDelete/@Screening.ScreeningId">Delete this Screening</a>
+        </div>
     }
 </div>
