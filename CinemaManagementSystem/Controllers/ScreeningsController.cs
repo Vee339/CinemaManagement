@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using CinemaManagementSystem.Models;
+using CinemaManagementSystem.Services;
+using CinemaManagementSystem.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 
@@ -11,11 +13,11 @@ namespace CinemaManagementSystem.Controllers
     [ApiController]
     public class ScreeningsController : ControllerBase
     {
-       private readonly ApplicationDbContext _context;
+       private readonly IScreeningsService _screeningsService;
 
-       public ScreeningsController(ApplicationDbContext context)
+       public ScreeningsController(IScreeningsService ScreeningsService)
         {
-            _context = context;
+            _screeningsService = ScreeningsService;
         }
 
         /// <summary>
@@ -34,26 +36,9 @@ namespace CinemaManagementSystem.Controllers
 
         public async Task<ActionResult<IEnumerable<ScreeningDto>>> GetScreenings()
         {
-            List<Screening> Screenings = await _context.Screenings.Include(s => s.Movie).Include(s => s.Hall).ToListAsync();
+            IEnumerable<ScreeningDto> Screenings = await _screeningsService.GetScreenings();
 
-            List<ScreeningDto> ScreeningDtos = new List<ScreeningDto>();
-
-            foreach(Screening Screening in Screenings)
-            {
-                ScreeningDto ScreeningDto = new ScreeningDto();
-
-                ScreeningDto.ScreeningId = Screening.ScreeningId;
-                ScreeningDto.Movie = Screening.Movie.Title;
-                ScreeningDto.Hall = Screening.Hall.Name + " " + Screening.Hall.Location;
-                ScreeningDto.ShowDate = Screening.ScreeningDate;
-                ScreeningDto.StartTime = Screening.StartTime;
-                ScreeningDto.EndTime = Screening.EndTime;
-
-                ScreeningDtos.Add(ScreeningDto);
-
-            }
-
-            return ScreeningDtos;
+            return Ok(Screenings);
         }
 
         /// <summary>
@@ -68,22 +53,13 @@ namespace CinemaManagementSystem.Controllers
         /// <returns>
         /// Returns the single screening associated with the id provided.
         /// </returns>
-        [HttpGet(template:"FindScreening/{id}")]
+        [HttpGet(template: "FindScreening/{id}")]
 
         public async Task<ActionResult<ScreeningDto>> FindScreening(int id)
         {
-            Screening Screening = await _context.Screenings.Include(s => s.Movie).Include(s => s.Hall).Where(s => s.ScreeningId == id).FirstOrDefaultAsync();
+            ScreeningDto Screening = await _screeningsService.FindScreening(id);
 
-            ScreeningDto ScreeningDto = new ScreeningDto();
-
-            ScreeningDto.ScreeningId = Screening.ScreeningId;
-            ScreeningDto.Movie = Screening.Movie.Title;
-            ScreeningDto.Hall = Screening.Hall.Name + " " + Screening.Hall.Location;
-            ScreeningDto.ShowDate = Screening.ScreeningDate;
-            ScreeningDto.StartTime = Screening.StartTime;
-            ScreeningDto.EndTime = Screening.EndTime;
-
-            return ScreeningDto;
+            return Ok(Screening);
         }
 
 
@@ -105,14 +81,12 @@ namespace CinemaManagementSystem.Controllers
         /// <returns>
         /// String - "Screening is added successfully".
         /// </returns>
-        [HttpPost(template:"AddScreening")]
+        [HttpPost(template: "AddScreening")]
         public async Task<string> AddScreening(Screening screening)
         {
-            _context.Screenings.Add(screening);
+            var result = await _screeningsService.AddScreening(screening);
 
-            await _context.SaveChangesAsync();
-
-            return "Screening is added successfully";
+            return result;
 
         }
 
@@ -142,33 +116,21 @@ namespace CinemaManagementSystem.Controllers
         /// </returns>
 
         [HttpPut("{id}")]
-        public async Task <IActionResult> EditScreening(int id, Screening screening)
+        public async Task<IActionResult> EditScreening(int id, Screening screening)
         {
-            if(id != screening.ScreeningId)
+            var result = await _screeningsService.EditScreening(id, screening);
+
+            if(result == "Bad Request")
             {
                 return BadRequest();
-            }
-
-            _context.Entry(screening).State = EntityState.Modified;
-
-            try
+            }else if(result == "Not Found")
             {
-                await _context.SaveChangesAsync();
+                return NotFound();
             }
-            catch (DBConcurrencyException)
+            else
             {
-                if (!ScreeningExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-
+                return NoContent();
             }
-
-            return NoContent();
         }
 
 
@@ -189,16 +151,12 @@ namespace CinemaManagementSystem.Controllers
         [HttpDelete(template: "DeleteScreening/{id}")]
         public async Task<ActionResult> DeleteScreening(int id)
         {
-            var screening = await _context.Screenings.FindAsync(id);
+            var result = await _screeningsService.DeleteScreening(id);
 
-            if (screening == null)
+            if(result == "Not Found")
             {
                 return NotFound();
             }
-
-            _context.Screenings.Remove(screening);
-
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -217,25 +175,9 @@ namespace CinemaManagementSystem.Controllers
         [HttpGet(template: "ListScreeningsForMovie/{id}")]
         public async Task<ActionResult<IEnumerable<ScreeningDto>>> ListScreeningsForMovie(int id)
         {
-            List<Screening> Screenings = await _context.Screenings.Include(s => s.Movie).Include(s => s.Hall).Where(s => s.MovieId == id).ToListAsync();
+            IEnumerable<ScreeningDto> ScreeningDtos = await _screeningsService.ListScreeningsForMovie(id);
 
-            List<ScreeningDto> ScreeningDtos = new List<ScreeningDto>();
-
-            foreach(Screening Screening in Screenings)
-            {
-                ScreeningDto ScreeningDto = new ScreeningDto();
-
-                ScreeningDto.ScreeningId = Screening.ScreeningId;
-                ScreeningDto.Movie = Screening.Movie.Title;
-                ScreeningDto.Hall = Screening.Hall.Name + " " + Screening.Hall.Location;
-                ScreeningDto.ShowDate = Screening.ScreeningDate;
-                ScreeningDto.StartTime = Screening.StartTime;
-                ScreeningDto.EndTime = Screening.EndTime;
-
-                ScreeningDtos.Add(ScreeningDto);
-            }
-
-            return ScreeningDtos;
+            return Ok(ScreeningDtos);
         }
 
         /// <summary>
@@ -253,25 +195,11 @@ namespace CinemaManagementSystem.Controllers
 
         public async Task<ActionResult<IEnumerable<ScreeningDto>>> ListScreeningsForHall(int id)
         {
-            List<Screening> Screenings = await _context.Screenings.Include(s => s.Movie).Include(s => s.Hall).Where(s => s.HallId == id).ToListAsync();
+            
+            IEnumerable<ScreeningDto> ScreeningDtos = await _screeningsService.ListScreeningsForHall(id);
 
-            List<ScreeningDto> ScreeningDtos = new List<ScreeningDto>();
-
-            foreach (Screening Screening in Screenings)
-            {
-                ScreeningDto ScreeningDto = new ScreeningDto();
-
-                ScreeningDto.ScreeningId = Screening.ScreeningId;
-                ScreeningDto.Movie = Screening.Movie.Title;
-                ScreeningDto.Hall = Screening.Hall.Name + " " + Screening.Hall.Location;
-                ScreeningDto.ShowDate = Screening.ScreeningDate;
-                ScreeningDto.StartTime = Screening.StartTime;
-                ScreeningDto.EndTime = Screening.EndTime;
-
-                ScreeningDtos.Add(ScreeningDto);
-            }
-
-            return ScreeningDtos;
+            
+            return Ok(ScreeningDtos);
         }
 
         /// <summary>
@@ -289,16 +217,11 @@ namespace CinemaManagementSystem.Controllers
         [HttpDelete(template: "RemoveScreeningsForMovie/{id}")]
         public async Task<ActionResult> RemoveScreeningsForMovie(int id)
         {
-            var screenings = await _context.Screenings.Where(s => s.MovieId == id).ToListAsync();
-            if (screenings == null)
+            var result = await _screeningsService.RemoveScreeningsForMovie(id);
+
+            if(result == "Not Found")
             {
                 return NotFound();
-            }
-            foreach (var screening in screenings)
-            {
-                _context.Screenings.Remove(screening);
-
-                await _context.SaveChangesAsync();
             }
 
             return NoContent();
@@ -320,26 +243,17 @@ namespace CinemaManagementSystem.Controllers
 
         public async Task<ActionResult> RemoveScreeningsForHall(int id)
         {
-            var screenings = await _context.Screenings.Where(s => s.HallId == id).ToListAsync();
 
-            if(screenings == null)
+            var result = await _screeningsService.RemoveScreeningsForHall(id);
+            
+            if(result == "Not Found")
             {
                 return NotFound();
-            }
-
-            foreach (var screening in screenings)
-            {
-                _context.Screenings.Remove(screening);
-
-                await _context.SaveChangesAsync();
             }
 
             return NoContent();
         }
 
-        private bool ScreeningExists(int id)
-        {
-            return _context.Screenings.Any(e => e.ScreeningId == id);
-        }
+
     }
 }

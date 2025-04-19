@@ -2,7 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using CinemaManagementSystem.Data;
 using CinemaManagementSystem.Models;
+using CinemaManagementSystem.Interfaces;
+using CinemaManagementSystem.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Net.WebSockets;
 
 namespace CinemaManagementSystem.Controllers
 {
@@ -10,11 +13,11 @@ namespace CinemaManagementSystem.Controllers
     [ApiController]
     public class HallsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IHallsService _hallsService;
 
-        public HallsController(ApplicationDbContext context)
+        public HallsController(IHallsService HallsService)
         {
-            _context = context;
+            _hallsService = HallsService;
         }
 
         /// <summary>
@@ -29,7 +32,9 @@ namespace CinemaManagementSystem.Controllers
         [HttpGet(template:"GetHalls")]
         public async Task<ActionResult<IEnumerable<Hall>>> GetHalls()
         {
-            return await _context.Halls.ToListAsync();
+            IEnumerable<Hall> Halls = await _hallsService.GetHalls();
+
+            return Ok(Halls);
         }
 
         /// <summary>
@@ -44,11 +49,11 @@ namespace CinemaManagementSystem.Controllers
         /// Returns the Hall.
         /// </returns>
 
-        [HttpGet(template:"FindHall/{id}")]
+        [HttpGet(template: "FindHall/{id}")]
 
-        public async Task <ActionResult<Hall>> FindHall(int id)
+        public async Task<ActionResult<Hall>> FindHall(int id)
         {
-            return await _context.Halls.FindAsync(id);
+            return await _hallsService.FindHall(id);
         }
 
 
@@ -70,15 +75,15 @@ namespace CinemaManagementSystem.Controllers
         /// <returns>
         /// Returns the hall that has just been added.
         /// </returns>
-        [HttpPost(template:"AddHall")]
+        [HttpPost(template: "AddHall")]
 
-        public async Task <ActionResult<Hall>> AddHall(Hall hall)
+        public async Task<ActionResult<Hall>> AddHall(Hall hall)
         {
-            _context.Halls.Add(hall);
+            
 
-            await _context.SaveChangesAsync();
+            await _hallsService.AddHall(hall);
 
-            return CreatedAtAction("FindHall", new {id = hall.HallId} , hall);
+            return NoContent();
         }
 
         /// <summary>
@@ -104,29 +109,14 @@ namespace CinemaManagementSystem.Controllers
         /// </returns>
 
         [HttpPut("{id}")]
-        public async Task <IActionResult> EditHall(int id, Hall hall)
+        public async Task<IActionResult> EditHall(int id, Hall hall)
         {
-            if(id != hall.HallId)
+
+            var result = await _hallsService.EditHall(id, hall);
+            
+            if(result == "Bad Request")
             {
                 return BadRequest();
-            }
-
-            _context.Entry(hall).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!HallExists(id))
-                {
-                    return BadRequest();
-                }
-                else
-                {
-                    throw;
-                }
             }
 
             return NoContent();
@@ -147,20 +137,17 @@ namespace CinemaManagementSystem.Controllers
         /// </returns>
 
 
-        [HttpDelete(template:"DeleteHall/{id}")]
+        [HttpDelete(template: "DeleteHall/{id}")]
 
         public async Task<ActionResult> DeleteHall(int id)
         {
-            var hall = await _context.Halls.FindAsync(id);
+            var result = await _hallsService.DeleteHall(id);
 
-            if(hall == null)
+            if (result == "Not Found")
             {
                 return NotFound();
             }
 
-            _context.Halls.Remove(hall);
-
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -179,18 +166,15 @@ namespace CinemaManagementSystem.Controllers
         /// The List of the halls in the movie is screened of which id is given.
         /// </returns>
 
-        [HttpGet(template:"ListHallsForMovie/{id}")]
+        [HttpGet(template: "ListHallsForMovie/{id}")]
         public async Task<ActionResult<IEnumerable<Hall>>> ListHallsForMovie(int id)
         {
-            List<Hall> Halls = await _context.Halls.Join(_context.Screenings, Hall => Hall.HallId, Screening => Screening.HallId, (Hall, Screening) => new { Hall, Screening }).Where(hs => hs.Screening.MovieId == id).Select(hs => hs.Hall).ToListAsync();
+            IEnumerable<Hall> Halls = await _hallsService.ListHallsForMovie(id);
 
-            return Halls;
+            return Ok(Halls);
         }
 
 
-        private bool HallExists(int id)
-        {
-            return _context.Halls.Any(e => e.HallId == id);
-        }
+
     }
 }

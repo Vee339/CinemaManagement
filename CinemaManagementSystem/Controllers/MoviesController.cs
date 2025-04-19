@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using CinemaManagementSystem.Data;
 using CinemaManagementSystem.Models;
+using CinemaManagementSystem.Interfaces;
+using CinemaManagementSystem.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Numerics;
 using System.Linq;
@@ -12,11 +14,11 @@ namespace CinemaManagementSystem.Controllers
     [ApiController]
     public class MoviesController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        public readonly IMoviesService _moviesService;
 
-        public MoviesController(ApplicationDbContext context)
+        public MoviesController(IMoviesService MoviesService)
         {
-            _context = context;
+            _moviesService = MoviesService;
         }
 
         /// <summary>
@@ -32,21 +34,9 @@ namespace CinemaManagementSystem.Controllers
         [HttpGet(template: "GetMovies")]
         public async Task<ActionResult<IEnumerable<MovieDto>>> GetMovies()
         {
-            List<Movie> Movies = await _context.Movies.Include(m => m.Screenings).ToListAsync();
+            IEnumerable<MovieDto> MovieDtos = await _moviesService.GetMovies();
 
-            List<MovieDto> MovieDtos = new List<MovieDto>();
-
-            foreach (Movie Movie in Movies)
-            {
-                MovieDto MovieDto = new MovieDto();
-                MovieDto.MovieId = Movie.MovieId;
-                MovieDto.MovieName = Movie.Title;
-                MovieDto.Language = Movie.Language;
-                MovieDto.TotalScreenings = Movie.Screenings.Count();
-
-                MovieDtos.Add(MovieDto);
-            }
-            return MovieDtos;
+            return Ok(MovieDtos);
         }
 
         /// <summary>
@@ -64,16 +54,9 @@ namespace CinemaManagementSystem.Controllers
 
         public async Task<ActionResult<MovieDto>> FindMovie(int id)
         {
-            MovieDto MovieDto = new MovieDto();
+            MovieDto MovieDto = await _moviesService.FindMovie(id);
 
-            Movie Movie = await _context.Movies.Include(m => m.Screenings).Where(m => m.MovieId == id).FirstOrDefaultAsync();
-
-            MovieDto.MovieId = Movie.MovieId;
-            MovieDto.MovieName = Movie.Title;
-            MovieDto.Language = Movie.Language;
-            MovieDto.TotalScreenings = Movie.Screenings.Count;
-
-            return MovieDto;
+            return Ok(MovieDto);
         }
 
 
@@ -97,11 +80,9 @@ namespace CinemaManagementSystem.Controllers
         /// </returns>
         [HttpPost(template: "AddMovie")]
 
-        public async Task<ActionResult<Movie>> AddMovie(Movie movie)
+        public async Task<ActionResult<string>> AddMovie(Movie movie)
         {
-            _context.Movies.Add(movie);
-
-            await _context.SaveChangesAsync();
+            await _moviesService.AddMovie(movie);
 
             return CreatedAtAction("FindMovie", new { id = movie.MovieId }, movie);
         }
@@ -133,31 +114,25 @@ namespace CinemaManagementSystem.Controllers
 
         public async Task<IActionResult> PutMovie(int id, Movie movie)
         {
-            if(id != movie.MovieId)
+            var result = await _moviesService.PutMovie(id, movie);
+
+            if(result == "Bad Request")
             {
                 return BadRequest();
             }
-            
-            _context.Entry(movie).State = EntityState.Modified;
 
-            try
+            if(result == "Not Found")
             {
-                await _context.SaveChangesAsync();
+                return NotFound();
             }
-            catch(DbUpdateConcurrencyException)
+
+            if(result == "No Content")
             {
-                if (!MovieExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NoContent();
             }
-            
 
             return NoContent();
+            
         }
 
         /// <summary>
@@ -177,18 +152,16 @@ namespace CinemaManagementSystem.Controllers
         [HttpDelete(template: "DeleteMovie/{id}")]
         public async Task<ActionResult> DeleteMovie(int id)
         {
-            var movie = await _context.Movies.FindAsync(id);
+            var result = await _moviesService.DeleteMovie(id);
 
-            if (movie == null)
+            if(result == "Not Found")
             {
                 return NotFound();
             }
-
-            _context.Movies.Remove(movie);
-
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            else
+            {
+                return NoContent();
+            }
         }
 
         // GET - api/Movies/ListMoviesForHall/3
@@ -204,18 +177,13 @@ namespace CinemaManagementSystem.Controllers
         /// The List of the movies in the hall of which id is given.
         /// </returns>
 
-        [HttpGet(template:"ListMoviesForHall/{id}")]
+        [HttpGet(template: "ListMoviesForHall/{id}")]
         public async Task<ActionResult<IEnumerable<Movie>>> ListMoviesForHall(int id)
         {
-            
-            List<Movie> Movies = await _context.Movies.Join(_context.Screenings, Movie => Movie.MovieId, Screening => Screening.MovieId, (Movie, Screening) => new { Movie, Screening }).Where(ms => ms.Screening.HallId == id).Select(ms => ms.Movie).ToListAsync();
 
-            return Movies;
-        }
+            IEnumerable<Movie> Movies = await _moviesService.ListMoviesForHall(id);
 
-        private bool MovieExists(int id)
-        {
-            return _context.Movies.Any(e => e.MovieId == id);
+            return Ok(Movies);
         }
     }
 }

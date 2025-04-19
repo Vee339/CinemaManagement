@@ -1,0 +1,11 @@
+﻿@model IEnumerable<MovieDto>
+
+<a href="/MoviesPage/New">New</a>
+
+<div class="row">
+@foreach(var Movie in Model){
+    <div>
+        <a href="/MoviesPage/Details/@Movie.MovieId">@Movie.MovieName</a>
+    </div>
+}
+</div>

@@ -1,3 +1,6 @@
+using CinemaManagementSystem.Services;
+using CinemaManagementSystem.Interfaces;
+using CinemaManagementSystem.Models;
 using CinemaManagementSystem.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +18,11 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddControllers();
+
+builder.Services.AddScoped<IMoviesService, MoviesService>();
+builder.Services.AddScoped<IHallsService, HallsService>();
+builder.Services.AddScoped<IScreeningsService, ScreeningsService>();
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

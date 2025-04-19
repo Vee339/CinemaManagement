@@ -1,0 +1,11 @@
+﻿@model IEnumerable<ScreeningDto>;
+
+<a href="/ScreeningsPage/New">Add New</a>
+<div class="row">
+@foreach(var Screening in Model){
+<div>
+    <a href="#">@Screening.Movie (@Screening.ShowDate @Screening.StartTime)</a>
+</div>
+}
+</div>
+

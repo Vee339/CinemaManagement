@@ -1,0 +1,12 @@
+﻿@model IEnumerable<Hall>;
+
+<a href="/HallsPage/New">Add New</a>
+
+<div class="row">
+    @foreach(var Hall in Model){
+        <div>
+              <a href="/HallsPage/Details/@Hall.HallId">@Hall.Name</a>
+        </div>
+    }
+
+</div>
