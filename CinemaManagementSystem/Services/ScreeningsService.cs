@@ -28,7 +28,7 @@ namespace CinemaManagementSystem.Services
 
                 ScreeningDto.ScreeningId = Screening.ScreeningId;
                 ScreeningDto.Movie = Screening.Movie.Title;
-                ScreeningDto.Hall = Screening.Hall.Name + " " + Screening.Hall.Location;
+                ScreeningDto.Hall = Screening.Hall.Name;
                 ScreeningDto.ShowDate = Screening.ScreeningDate;
                 ScreeningDto.StartTime = Screening.StartTime;
                 ScreeningDto.EndTime = Screening.EndTime;
@@ -48,7 +48,7 @@ namespace CinemaManagementSystem.Services
 
             ScreeningDto.ScreeningId = Screening.ScreeningId;
             ScreeningDto.Movie = Screening.Movie.Title;
-            ScreeningDto.Hall = Screening.Hall.Name + " " + Screening.Hall.Location;
+            ScreeningDto.Hall = Screening.Hall.Name;
             ScreeningDto.ShowDate = Screening.ScreeningDate;
             ScreeningDto.StartTime = Screening.StartTime;
             ScreeningDto.EndTime = Screening.EndTime;

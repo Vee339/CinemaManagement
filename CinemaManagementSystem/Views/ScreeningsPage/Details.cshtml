@@ -1,0 +1,9 @@
+﻿@model ScreeningDto
+
+<a href="/ScreeningsPage/Edit/@Model.ScreeningId">Edit</a>
+<a href="/ScreeningsPage/ConfirmDelete/@Model.ScreeningId">Delete</a>
+
+<h1>Screening of movie @Model.Movie </h1>
+<p>Hall - @Model.Hall</p>
+<p>Show Date - @Model.ShowDate</p>
+<p>Timings: @Model.StartTime - @Model.EndTime</p>

@@ -1,0 +1,48 @@
+﻿@model CinemaManagementSystem.Models.ViewsModels.MoviesHalls
+
+<h1>Edit the Screening - @Model.Screening.ScreeningId</h1>
+
+<form method="POST" action="/ScreeningsPage/Update/@Model.Screening.ScreeningId">
+    <div class="inputBox">
+        <input type="number" value="@Model.Screening.ScreeningId" name="ScreeningId"/>
+    </div>
+    <div class="inputBox">
+        <label for="movie">Movie:</label>
+        <select id="movie" name="MovieId">
+            @foreach (var Movie in Model.Movies)
+            {
+                @if(Movie.MovieName == Model.Screening.Movie){
+                    <option value="@Movie.MovieId" selected>@Movie.MovieName</option>
+                }else{
+                    <option value="@Movie.MovieId">@Movie.MovieName</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="inputBox">
+        <label for="hall">Hall:</label>
+        <select id="hall" name="HallId">
+            @foreach (var Hall in Model.Halls)
+            {
+                @if(Hall.Name == Model.Screening.Hall){
+                    <option value="@Hall.HallId" selected>@Hall.Name</option>
+                }else{
+                    <option value="@Hall.HallId">@Hall.Name</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="inputBox">
+        <label for="screeningDate">Date:</label>
+        <input type="date" id="screeningDate" name="ScreeningDate" value="@Model.Screening.ShowDate" />
+    </div>
+    <div class="inputBox">
+        <label for="startTime">Start Time:</label>
+        <input type="time" id="startTime" name="StartTime" value="@Model.Screening.StartTime" />
+    </div>
+    <div class="inputBox">
+        <label for="endTime">End Time:</label>
+        <input type="time" id="endTime" name="EndTime" value="@Model.Screening.EndTime"/>
+    </div>
+    <input type="submit" value="Submit" />
+</form>

@@ -4,7 +4,7 @@
 <div class="row">
 @foreach(var Screening in Model){
 <div>
-    <a href="#">@Screening.Movie (@Screening.ShowDate @Screening.StartTime)</a>
+    <a href="/ScreeningsPage/Details/@Screening.ScreeningId">@Screening.Movie (@Screening.ShowDate @Screening.StartTime)</a>
 </div>
 }
 </div>

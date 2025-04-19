@@ -1,0 +1,7 @@
+﻿@model ScreeningDto
+
+<h1>Are you sure that you want to delete the screening - @Model.ScreeningId ?</h1>
+<a href="/ScreeningsPage/Details/@Model.ScreeningId">Cancel</a>
+<form method="POST" action="/ScreeningsPage/Delete/@Model.ScreeningId">
+    <input type="submit" value="Submit"/>
+</form>
