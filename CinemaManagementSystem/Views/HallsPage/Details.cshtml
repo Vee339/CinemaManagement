@@ -1,0 +1,24 @@
+﻿@model CinemaManagementSystem.Models.ViewsModels.HallDetails
+
+
+
+<h1>Information of the hall @Model.Hall.Name</h1>
+<a href="/HallsPage/Edit/@Model.Hall.HallId">Edit</a>
+<a href="/HallsPage/ConfirmDelete/@Model.Hall.HallId">Delete</a>
+
+<p>Id: @Model.Hall.HallId</p>
+<p>Hall Name: @Model.Hall.Name</p>
+<p>Capacity: @Model.Hall.Capacity</p>
+<p>Location: @Model.Hall.Location</p>
+
+<h2>Screenings in this Hall</h2>
+@foreach (var Screening in Model.HallScreenings)
+{
+    <div class="screening">
+        <h3>@Screening.Movie</h3>
+        <p>@Screening.ShowDate</p>
+        <p>@Screening.StartTime - @Screening.EndTime</p>
+        <a href="/ScreeningsPage/Details/@Screening.ScreeningId">See Details</a>
+        <a href="/ScreeningsPage/ConfirmDelete/@Screening.ScreeningId">Delete this Screening</a>
+    </div>
+}

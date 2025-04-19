@@ -1,0 +1,22 @@
+﻿@model Hall
+
+<h1>Edit the hall @Model.Name</h1>
+
+<form method="POST" action="/HallsPage/Update/@Model.HallId">
+    <div class="inputBox">
+        <input type="number" value="@Model.HallId" name="HallId"/>
+    </div>
+    <div class="inputBox">
+        <label for="name">Name:</label>
+        <input type="text" name="Name" id="name" value="@Model.Name"/>
+    </div>
+    <div class="inputBox">
+        <label for="capacity">Capacity:</label>
+        <input type="number" name="Capacity" id="capacity" value="@Model.Capacity"/>
+    </div>
+    <div class="inputBox">
+        <label for="location">Location:</label>
+        <input type="text" name="Location" id="location" value="@Model.Location"/>
+    </div>
+    <input type="submit" value="Submit" />
+</form>

@@ -1,0 +1,8 @@
+﻿@model Hall
+
+<h1>Are you sure you want to delete the hall @Model.Name</h1>
+
+<a href="/HallsPage/Details/@Model.HallId">Go Back</a>
+<form method="POST" action="/HallsPage/Delete/@Model.HallId">
+    <input type="submit" value="Confirm Delete"/>    
+</form>
